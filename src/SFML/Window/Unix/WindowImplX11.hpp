@@ -33,6 +33,7 @@
 #include <SFML/System/String.hpp>
 #include <X11/Xlib-xcb.h>
 #include <xcb/randr.h>
+#include <xcb/xcb_cursor.h>
 #include <deque>
 
 
@@ -146,6 +147,26 @@ public:
     ///
     ////////////////////////////////////////////////////////////
     virtual void setMouseCursorVisible(bool visible);
+
+    ////////////////////////////////////////////////////////////
+    /// \brief Set the displayed cursor to a native system cursor
+    ///
+    /// \param cursor Native system cursor type to display
+    ///
+    ////////////////////////////////////////////////////////////
+    virtual void setMouseCursor(Window::Cursor cursor);
+
+    ////////////////////////////////////////////////////////////
+    /// \brief Set the displayed cursor to the provided image
+    ///
+    /// \param pixels   Array of pixels of the image
+    /// \param width    Width of the image
+    /// \param height   Height of the image
+    /// \param hotspotX X location of the hotspot
+    /// \param hotspotY Y location of the hotspot
+    ///
+    ////////////////////////////////////////////////////////////
+    virtual void setMouseCursor(const Uint8* pixels, unsigned int width, unsigned int height, Uint16 hotspotX, Uint16 hotspotY);
 
     ////////////////////////////////////////////////////////////
     /// \brief Enable or disable automatic key-repeat
@@ -282,12 +303,6 @@ private:
     void initialize();
 
     ////////////////////////////////////////////////////////////
-    /// \brief Create a transparent mouse cursor
-    ///
-    ////////////////////////////////////////////////////////////
-    void createHiddenCursor();
-
-    ////////////////////////////////////////////////////////////
     /// \brief Cleanup graphical resources attached to the window
     ///
     ////////////////////////////////////////////////////////////
@@ -314,7 +329,8 @@ private:
     XIC                               m_inputContext;    ///< Input context used to get unicode input in our window
     bool                              m_isExternal;      ///< Tell whether the window has been created externally or by SFML
     xcb_randr_get_screen_info_reply_t m_oldVideoMode;    ///< Video mode in use before we switch to fullscreen
-    Cursor                            m_hiddenCursor;    ///< As X11 doesn't provide cursor hidding, we must create a transparent one
+    xcb_cursor_t                      m_cursor;          ///< The cursor currently displayed into the window, 0 if hidden
+    xcb_cursor_t                      m_loadedCursor;    ///< The cursor selected to be displayed into the window
     bool                              m_keyRepeat;       ///< Is the KeyRepeat feature enabled?
     Vector2i                          m_previousSize;    ///< Previous size of the window, to find if a ConfigureNotify event is a resize event (could be a move event only)
     bool                              m_useSizeHints;    ///< Is the size of the window fixed with size hints?
