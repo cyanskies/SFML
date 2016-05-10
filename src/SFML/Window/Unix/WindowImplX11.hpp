@@ -319,6 +319,8 @@ private:
     Vector2i                          m_previousSize;    ///< Previous size of the window, to find if a ConfigureNotify event is a resize event (could be a move event only)
     bool                              m_useSizeHints;    ///< Is the size of the window fixed with size hints?
     bool                              m_fullscreen;      ///< Is window in fullscreen?
+    xcb_pixmap_t                      m_iconPixmap;      ///< The current icon pixmap if in use
+    xcb_pixmap_t                      m_iconMaskPixmap;  ///< The current icon mask pixmap if in use
 };
 
 } // namespace priv
