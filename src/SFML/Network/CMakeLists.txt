@@ -56,4 +56,4 @@ sfml_add_library(sfml-network
                  DEPENDS sfml-system
                  EXTERNAL_LIBS ${NETWORK_EXT_LIBS})
 
-target_include_directories(sfml-audio PUBLIC ../../../include)
+target_include_directories(sfml-network PUBLIC ../../../include)
