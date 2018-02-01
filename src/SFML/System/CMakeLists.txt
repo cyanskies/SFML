@@ -103,3 +103,5 @@ endif()
 sfml_add_library(sfml-system
                  SOURCES ${SRC} ${PLATFORM_SRC}
                  EXTERNAL_LIBS ${SYSTEM_EXT_LIBS})
+
+target_include_directories(sfml-audio PUBLIC ../../../include)

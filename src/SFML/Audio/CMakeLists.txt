@@ -102,3 +102,5 @@ sfml_add_library(sfml-audio
                  SOURCES ${SRC} ${CODECS_SRC}
                  DEPENDS sfml-system
                  EXTERNAL_LIBS ${AUDIO_EXT_LIBS})
+
+target_include_directories(sfml-audio PUBLIC ../../../include)

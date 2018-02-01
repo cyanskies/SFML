@@ -278,3 +278,5 @@ sfml_add_library(sfml-window
                  SOURCES ${SRC} ${PLATFORM_SRC}
                  DEPENDS sfml-system
                  EXTERNAL_LIBS ${WINDOW_EXT_LIBS})
+
+target_include_directories(sfml-audio PUBLIC ../../../include)

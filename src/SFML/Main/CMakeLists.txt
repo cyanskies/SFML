@@ -35,3 +35,5 @@ install(TARGETS sfml-main ARCHIVE DESTINATION lib${LIB_SUFFIX} COMPONENT devel)
 if(SFML_OS_ANDROID)
     sfml_add_library(sfml-activity SOURCES ${PROJECT_SOURCE_DIR}/src/SFML/Main/SFMLActivity.cpp)
 endif()
+
+target_include_directories(sfml-audio PUBLIC ../../../include)
