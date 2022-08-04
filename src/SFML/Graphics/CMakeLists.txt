@@ -49,6 +49,8 @@ set(SRC
     ${INCROOT}/View.hpp
     ${INCROOT}/Vertex.hpp
     ${INCROOT}/Vertex.inl
+    ${INCROOT}/Vertex3.hpp
+    ${INCROOT}/Vertex3.inl
 )
 source_group("" FILES ${SRC})
 
