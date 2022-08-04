@@ -43,6 +43,9 @@ set(SRC
     ${SRCROOT}/Transform.cpp
     ${INCROOT}/Transform.hpp
     ${INCROOT}/Transform.inl
+    ${SRCROOT}/Transform3.cpp
+    ${INCROOT}/Transform3.hpp
+    ${INCROOT}/Transform3.inl
     ${SRCROOT}/Transformable.cpp
     ${INCROOT}/Transformable.hpp
     ${SRCROOT}/View.cpp
