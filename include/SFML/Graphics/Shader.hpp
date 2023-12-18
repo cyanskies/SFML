@@ -587,6 +587,16 @@ public:
     void setUniformArray(const std::string& name, const Glsl::Mat4* matrixArray, std::size_t length);
 
     ////////////////////////////////////////////////////////////
+    /// \brief Specify values for \p texture[] array uniform
+    ///
+    /// \param name        Name of the uniform variable in GLSL
+    /// \param textureArray pointer to array of \p texture values
+    /// \param length      Number of elements in the array
+    ///
+    ////////////////////////////////////////////////////////////
+    void setUniformArray(const std::string& name, const Texture** textureArray, std::size_t length);
+
+    ////////////////////////////////////////////////////////////
     /// \brief Get the underlying OpenGL handle of the shader.
     ///
     /// You shouldn't need to use this function, unless you have
@@ -652,6 +662,9 @@ public:
     ////////////////////////////////////////////////////////////
     static bool isGeometryAvailable();
 
+    static int maxTextureUnitsVertex();
+    static int maxTextureUnitsFragment();
+
 private:
     ////////////////////////////////////////////////////////////
     /// \brief Compile the shader(s) and create the program
@@ -699,7 +712,7 @@ private:
     ////////////////////////////////////////////////////////////
     // Types
     ////////////////////////////////////////////////////////////
-    using TextureTable = std::unordered_map<int, const Texture*>;
+    using TextureTable = std::unordered_map<int, std::vector<const Texture*>>;
     using UniformTable = std::unordered_map<std::string, int>;
 
     ////////////////////////////////////////////////////////////
@@ -707,6 +720,7 @@ private:
     ////////////////////////////////////////////////////////////
     unsigned int m_shaderProgram{};    //!< OpenGL identifier for the program
     int          m_currentTexture{-1}; //!< Location of the current texture in the shader
+    int          m_textureCount{};
     TextureTable m_textures;           //!< Texture variables in the shader, mapped to their location
     UniformTable m_uniforms;           //!< Parameters location cache
 };

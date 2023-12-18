@@ -589,19 +589,20 @@ void Shader::setUniform(const std::string& name, const Texture& texture)
             if (it == m_textures.end())
             {
                 // New entry, make sure there are enough texture units
-                if (m_textures.size() + 1 >= getMaxTextureUnits())
+                if (m_textureCount + 1 >= getMaxTextureUnits())
                 {
                     err() << "Impossible to use texture " << std::quoted(name)
                           << " for shader: all available texture units are used" << std::endl;
                     return;
                 }
 
-                m_textures[location] = &texture;
+                ++m_textureCount;
+                m_textures.emplace(location, std::vector<const Texture*>{ &texture });
             }
             else
             {
                 // Location already used, just replace the texture
-                it->second = &texture;
+                it->second = { &texture };
             }
         }
     }
@@ -692,6 +693,53 @@ void Shader::setUniformArray(const std::string& name, const Glsl::Mat4* matrixAr
         glCheck(GLEXT_glUniformMatrix4fv(binder.location, static_cast<GLsizei>(length), GL_FALSE, contiguous.data()));
 }
 
+////////////////////////////////////////////////////////////
+void Shader::setUniformArray(const std::string& name, const Texture** textureArray, std::size_t length)
+{
+    if (m_shaderProgram)
+    {
+        const TransientContextLock lock;
+
+        // Find the location of the variable in the shader
+        const int location = getUniformLocation(name);
+        if (location != -1)
+        {
+            auto arr = std::vector<const Texture*>(length, nullptr);
+            for (auto i = std::size_t{}; i < length; ++i)
+                arr[i] = textureArray[i];
+
+            const auto it = m_textures.find(location);
+            if (it == m_textures.end())
+            {
+                // New entry, make sure there are enough texture units
+                if (m_textureCount + length >= getMaxTextureUnits())
+                {
+                    err() << "Impossible to use texture " << std::quoted(name)
+                          << " for shader: all available texture units are used" << std::endl;
+                    return;
+                }
+
+                m_textures.emplace(location, std::move(arr));
+                m_textureCount += length;
+            }
+            else
+            {
+                if (m_textureCount - it->second.size() + length >= getMaxTextureUnits())
+                {
+                    err() << "Impossible to use texture " << std::quoted(name)
+                          << " for shader: all available texture units are used" << std::endl;
+                    return;
+                }
+
+                m_textureCount -= it->second.size();
+                m_textureCount += length;
+                
+                // Location already used, just replace the texture
+                it->second = std::move(arr);
+            }
+        }
+    }
+}
 
 ////////////////////////////////////////////////////////////
 unsigned int Shader::getNativeHandle() const
@@ -765,6 +813,26 @@ bool Shader::isGeometryAvailable()
     }();
 
     return available;
+}
+
+
+////////////////////////////////////////////////////////////
+int Shader::maxTextureUnitsVertex()
+{
+    const TransientContextLock contextLock;
+    int out = 0;
+    glGetIntegerv(GL_MAX_VERTEX_TEXTURE_IMAGE_UNITS, &out);
+    return out;
+}
+
+
+////////////////////////////////////////////////////////////
+int Shader::maxTextureUnitsFragment()
+{
+    const TransientContextLock contextLock;
+    int out = 0;
+    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &out);
+    return out;
 }
 
 
@@ -914,12 +982,36 @@ bool Shader::compile(const char* vertexShaderCode, const char* geometryShaderCod
 void Shader::bindTextures() const
 {
     auto it = m_textures.begin();
+    auto index = GLsizei{};
     for (std::size_t i = 0; i < m_textures.size(); ++i)
     {
-        const auto index = static_cast<GLsizei>(i + 1);
-        glCheck(GLEXT_glUniform1i(it->first, index));
-        glCheck(GLEXT_glActiveTexture(GLEXT_GL_TEXTURE0 + static_cast<GLenum>(index)));
-        Texture::bind(it->second);
+        const auto length = it->second.size();
+        if (length == 1)
+        {
+            ++index;
+            glCheck(GLEXT_glUniform1i(it->first, index));
+            glCheck(GLEXT_glActiveTexture(GLEXT_GL_TEXTURE0 + static_cast<GLenum>(index)));
+            Texture::bind(it->second.front());
+        }
+        else
+        {
+            std::vector<GLint> texture_handles(length, 0);
+            auto& list = it->second;
+            for (std::size_t i = 0; i < length; ++i)
+            {
+                texture_handles[i] = static_cast<GLint>(index + i + 1);     
+            }
+
+            glCheck(GLEXT_glUniform1iv(it->first, static_cast<GLsizei>(length), texture_handles.data()));
+
+            for (std::size_t i = 0; i < length; ++i)
+            {
+                ++index;
+                glCheck(GLEXT_glActiveTexture(GLEXT_GL_TEXTURE0 + static_cast<GLenum>(index)));    
+                if (list[i])
+                    Texture::bind(list[i]);
+            }
+        }
         ++it;
     }
 
